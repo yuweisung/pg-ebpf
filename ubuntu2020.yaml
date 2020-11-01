@@ -1,0 +1,61 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Waiting for ssh
+    wait_for_connection:
+      timeout: 400
+
+  - name: Updating apt
+    apt:
+      update_cache: yes
+      upgrade: yes
+
+  - name: Installing packages
+    apt:
+      pkg:
+        - build-essential
+        - libreadline-dev
+        - zlib1g-dev
+        - flex
+        - bison
+        - libxml2-dev
+        - libxslt-dev
+        - libssl-dev
+        - libxml2-utils
+        - xsltproc
+        - libkrb5-dev
+        - libpam0g-dev
+        - libsystemd-dev
+        - libperl-dev
+        - libpython3-dev
+        - clang
+        - llvm
+        - systemtap-sdt-dev
+        - systemtap
+        - libossp-uuid-dev
+        - libldap2-dev
+        - bpfcc-tools
+      state: present
+
+  - name: Adding service users
+    user:
+      name: "{{ item }}"
+      shell: /bin/false
+    with_items:
+      - postgres
+      - prometheus
+      
+  - name: Changing directory owner
+    file:
+      path: /pgdata
+      state: directory
+      recurse: yes
+      owner: postgres
+      group: postgres
+
+  - name: Changing pghome
+    user:
+      name: postgres
+      home: /pgdata

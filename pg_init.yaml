@@ -1,0 +1,27 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Waiting for ssh
+    wait_for_connection:
+      timeout: 400
+  
+  - name: setting up pgsql systemd
+    copy:
+      src: files/postgresql.service
+      dest: /etc/systemd/system
+      owner: root
+      group: root
+  
+  - name: refreshing systemd
+    systemd: daemon_reload=yes
+
+  - name: initing pgsql
+    command: sudo -u postgres /usr/local/pgsql/bin/initdb -D /pgdata
+
+  - name: enabling and starting postgresql service
+    systemd:
+      name: postgresql.service
+      state: started
+      enabled: yes

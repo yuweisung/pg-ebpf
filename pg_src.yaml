@@ -1,0 +1,41 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Waiting for ssh
+    wait_for_connection:
+      timeout: 400
+
+  - name: cloning pg github
+    git:
+      repo: 'https://github.com/postgres/postgres.git'
+      dest: /pgsrc
+
+  - name: checkout current stable 
+    command: 
+      cmd: git checkout -b REL_13_STABLE origin/REL_13_STABLE
+      chdir: /pgsrc
+
+  - name: configuring pg source
+    command:
+      cmd: ./configure --with-perl --with-python --with-gssapi --with-llvm --with-openssl --with-pam --with-ldap --with-systemd --with-uuid=ossp --with-libxml --enable-debug --enable-dtrace
+      chdir: /pgsrc
+
+  - name: making pg source
+    command: 
+      cmd: make -j4 world
+      chdir: /pgsrc
+
+  - name: making install
+    command: 
+      cmd: make install-world
+      chdir: /pgsrc
+
+  - name: changing pg binary owner
+    file:
+      path: /usr/local/pgsql
+      state: directory
+      recurse: yes
+      owner: postgres
+      group: postgres
