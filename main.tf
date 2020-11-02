@@ -5,9 +5,6 @@ provider "google" {
 	zone = var.gcp_zone
 }
 
-resource "random_id" "instance_id" {
-	byte_length = 8
-}
 
 resource "google_compute_firewall" "prometheus" {
 	name = "default-prometheus"
@@ -29,8 +26,33 @@ resource "google_compute_disk" "pg_data" {
 	type = "pd-ssd"
 }
 
-resource "google_compute_instance" "default" {
-	name = "pg-vm-${random_id.instance_id.hex}"
+resource "google_compute_instance" "prometheus" {
+	name = "prometheus"
+	machine_type = var.instance_type
+
+	boot_disk {
+		initialize_params {
+			image = var.image_type
+		}
+	}
+
+	metadata = {
+		ssh-keys = "${var.ssh_user}:${file(var.ssh_pub)}"
+	}
+
+	network_interface {
+		network = "default"
+
+		access_config{
+
+		}
+	}
+
+	tags = ["prometheus"]
+}
+
+resource "google_compute_instance" "postgres" {
+	name = "postgres"
 	machine_type = var.instance_type
 
 	boot_disk {
@@ -66,7 +88,8 @@ resource "google_compute_instance" "default" {
 resource "local_file" "ansible_host" {
  content = templatefile("templates/hosts.tpl",
 	   {
-		 default_hosts = google_compute_instance.default.*.network_interface.0.access_config.0.nat_ip
+		 postgres_hosts = google_compute_instance.postgres.*.network_interface.0.access_config.0.nat_ip
+		 prometheus_hosts = google_compute_instance.prometheus.*.network_interface.0.access_config.0.nat_ip
 	   }
 	)
  filename = "${path.module}/hosts"
@@ -77,11 +100,11 @@ resource "null_resource" "ansible_playbook" {
 	local_file.ansible_host,
   ]
   provisioner "local-exec" {
-    command = "ansible-playbook main.yaml"
+    command = "ansible-playbook postgres/main.yaml"
   }
 }
 
 
 output "ip" {
-	value = google_compute_instance.default.network_interface.0.access_config.0.nat_ip
+	value = google_compute_instance.prometheus.network_interface.0.access_config.0.nat_ip
 }

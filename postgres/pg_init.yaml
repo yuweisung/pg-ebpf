@@ -1,0 +1,52 @@
+---
+- hosts: postgres
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: changing pg binary owner
+    file:
+      path: /usr/local/pgsql
+      state: directory
+      recurse: yes
+      owner: postgres
+      group: postgres
+
+  - name: Adding service users
+    user:
+      name: "{{ item }}"
+      shell: /bin/false
+    with_items:
+      - postgres
+      - prometheus
+      
+  - name: Changing pgdata owner
+    file:
+      path: /pgdata
+      state: directory
+      recurse: yes
+      owner: postgres
+      group: postgres
+
+  - name: Changing pghome
+    user:
+      name: postgres
+      home: /pgdata
+
+  - name: setting up pgsql systemd
+    copy:
+      src: files/postgresql.service
+      dest: /etc/systemd/system
+      owner: root
+      group: root
+  
+  - name: refreshing systemd
+    systemd: daemon_reload=yes
+
+  - name: initing pgsql
+    command: sudo -u postgres /usr/local/pgsql/bin/initdb -D /pgdata
+
+  - name: enabling and starting postgresql service
+    systemd:
+      name: postgresql.service
+      state: started
+      enabled: yes

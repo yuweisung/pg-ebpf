@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: postgres
   gather_facts: no
   become: yes
   tasks:
@@ -39,24 +39,3 @@
         - bpfcc-tools
         - linux-headers-generic
       state: present
-
-  - name: Adding service users
-    user:
-      name: "{{ item }}"
-      shell: /bin/false
-    with_items:
-      - postgres
-      - prometheus
-      
-  - name: Changing directory owner
-    file:
-      path: /pgdata
-      state: directory
-      recurse: yes
-      owner: postgres
-      group: postgres
-
-  - name: Changing pghome
-    user:
-      name: postgres
-      home: /pgdata

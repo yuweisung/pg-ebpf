@@ -1,11 +1,35 @@
 ---
-- hosts: all
+- hosts: postgres
   gather_facts: no
   become: yes
   tasks:
-  - name: Waiting for ssh
-    wait_for_connection:
-      timeout: 400
+  - name: Installing packages
+    apt:
+      pkg:
+        - build-essential
+        - libreadline-dev
+        - zlib1g-dev
+        - flex
+        - bison
+        - libxml2-dev
+        - libxslt-dev
+        - libssl-dev
+        - libxml2-utils
+        - xsltproc
+        - libkrb5-dev
+        - libpam0g-dev
+        - libsystemd-dev
+        - libperl-dev
+        - libpython3-dev
+        - clang
+        - llvm
+        - systemtap-sdt-dev
+        - systemtap
+        - libossp-uuid-dev
+        - libldap2-dev
+        - bpfcc-tools
+        - linux-headers-generic
+      state: present
 
   - name: cloning pg github
     git:
@@ -31,11 +55,3 @@
     command: 
       cmd: make install-world
       chdir: /pgsrc
-
-  - name: changing pg binary owner
-    file:
-      path: /usr/local/pgsql
-      state: directory
-      recurse: yes
-      owner: postgres
-      group: postgres
