@@ -37,6 +37,7 @@
         - libossp-uuid-dev
         - libldap2-dev
         - bpfcc-tools
+        - linux-headers-generic
       state: present
 
   - name: Adding service users

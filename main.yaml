@@ -1,6 +1,6 @@
 ---
 - name: Setting up ubuntu
-  import_playbook: "ubuntu2020.yaml"
+  import_playbook: "ubuntu.yaml"
 - name: Compiling postgresql from source
   import_playbook: "pg_src.yaml"
 - name: Initing postgresql

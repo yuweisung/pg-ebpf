@@ -1,0 +1,23 @@
+global transaction_time, transaction_summary
+probe process("/usr/local/pgsql/bin/postgres").mark("transaction__start")
+{
+        transaction_time[tid(), $arg1] = gettimeofday_us();
+}
+
+probe process("/usr/local/pgsql/bin/postgres").mark("transaction__commit")
+{
+        p = tid();
+        t = transaction_time[p, $arg1];
+        delete transaction_time[p, $arg1];
+        if (t) {
+                transaction_summary[p] <<< (gettimeofday_us() - t);
+        }
+}
+
+probe end
+{
+        printf("");
+        foreach (p in transaction_summary) {
+                printf("%d %d %d %d %d\n", p, @count(transaction_summary[p]), @min(transaction_summary[p]), @avg(transaction_summary[p]), @max(transaction_summary[p]));
+        }
+}

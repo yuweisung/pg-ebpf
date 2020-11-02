@@ -19,12 +19,12 @@ variable "gcp_credentials" {
 }
 variable "instance_type" {
   type = string
-  default = "n1-standard-1"
+  default = "n2-standard-2"
 }
 
 variable "image_type" {
   type = string
-  default = "ubuntu-os-cloud/ubuntu-2010-groovy-v20201022a"
+  default = "ubuntu-os-cloud/ubuntu-2004-focal-v20201028"
 }
 
 variable "ssh_user" {
