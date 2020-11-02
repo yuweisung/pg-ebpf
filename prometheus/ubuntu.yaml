@@ -1,0 +1,13 @@
+---
+- hosts: prometheus
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: Waiting for ssh
+    wait_for_connection:
+      timeout: 400
+
+  - name: Updating apt
+    apt:
+      update_cache: yes
+      upgrade: yes
