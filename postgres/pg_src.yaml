@@ -3,34 +3,6 @@
   gather_facts: no
   become: yes
   tasks:
-  - name: Installing packages
-    apt:
-      pkg:
-        - build-essential
-        - libreadline-dev
-        - zlib1g-dev
-        - flex
-        - bison
-        - libxml2-dev
-        - libxslt-dev
-        - libssl-dev
-        - libxml2-utils
-        - xsltproc
-        - libkrb5-dev
-        - libpam0g-dev
-        - libsystemd-dev
-        - libperl-dev
-        - libpython3-dev
-        - clang
-        - llvm
-        - systemtap-sdt-dev
-        - systemtap
-        - libossp-uuid-dev
-        - libldap2-dev
-        - bpfcc-tools
-        - linux-headers-generic
-      state: present
-
   - name: cloning pg github
     git:
       repo: 'https://github.com/postgres/postgres.git'
@@ -48,7 +20,7 @@
 
   - name: making pg source
     command: 
-      cmd: make -j4 world
+      cmd: make -j8 world
       chdir: /pgsrc
 
   - name: making install

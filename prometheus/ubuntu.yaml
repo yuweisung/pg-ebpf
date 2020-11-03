@@ -12,16 +12,64 @@
       update_cache: yes
       upgrade: yes
 
- - name: Creating filesystems
+  - name: Installing packages
+    apt:
+      pkg:
+        - wget
+        - curl
+        - vim
+      state: present
+      update_cache: yes
+
+  - name: Creating filesystems
     filesystem:
       fstype: xfs
-      dev: {{ item }}
-    with_item:
+      dev: "{{ item }}"
+    with_items:
       - /dev/sdb
 
-- name: Mounting pgsrc filesystem
+  - name: Mounting pgsrc filesystem
     mount:
       path: /promdata
       src: /dev/sdb
+      fstype: xfs
       opts: nofail,noatime,nodev,defaults
       state: mounted
+
+  - name: Adding system group prometheus
+    group:
+      name: prometheus
+      state: present
+      system: yes
+
+  - name: Adding system user prometheus
+    user: 
+      name: prometheus
+      shell: /bin/false
+      group: prometheus
+      system: yes
+
+  - name: Setting up etc prometheus
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /etc/prometheus/rules
+      - /etc/prometheus/rules.d
+      - /etc/prometheus/files_sd
+
+  - name: setting up prometheus systemd
+    copy:
+      src: files/prometheus.service
+      dest: /etc/systemd/system
+      owner: root
+      group: root
+  
+  - name: refreshing systemd
+    systemd: daemon_reload=yes
+
+  - name: enabling and starting prometheus service
+    systemd:
+      name: prometheus.service
+      state: started
+      enabled: yes

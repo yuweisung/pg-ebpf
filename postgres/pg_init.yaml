@@ -43,6 +43,7 @@
     systemd: daemon_reload=yes
 
   - name: initing pgsql
+    become: yes
     command: sudo -u postgres /usr/local/pgsql/bin/initdb -D /pgdata
 
   - name: enabling and starting postgresql service

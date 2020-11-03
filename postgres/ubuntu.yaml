@@ -15,8 +15,8 @@
   - name: Creating filesystems
     filesystem:
       fstype: xfs
-      dev: {{ item }}
-    with_item:
+      dev: "{{ item }}"
+    with_items:
       - /dev/sdb
       - /dev/sdc
 
@@ -24,6 +24,7 @@
     mount:
       path: /pgsrc
       src: /dev/sdb
+      fstype: xfs
       opts: nofail,noatime,nodev,defaults
       state: present
 
@@ -31,6 +32,7 @@
     mount:
       path: /pgdata
       src: /dev/sdc
+      fstype: xfs
       opts: nofail,noatime,nodev,defaults
       state: present
 
@@ -61,3 +63,5 @@
         - bpfcc-tools
         - linux-headers-generic
       state: present
+      update_cache: yes
+
