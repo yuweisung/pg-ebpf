@@ -12,6 +12,28 @@
       update_cache: yes
       upgrade: yes
 
+  - name: Creating filesystems
+    filesystem:
+      fstype: xfs
+      dev: {{ item }}
+    with_item:
+      - /dev/sdb
+      - /dev/sdc
+
+  - name: Mounting pgsrc filesystem
+    mount:
+      path: /pgsrc
+      src: /dev/sdb
+      opts: nofail,noatime,nodev,defaults
+      state: present
+
+  - name: Mounting pgdata filesystem
+    mount:
+      path: /pgdata
+      src: /dev/sdc
+      opts: nofail,noatime,nodev,defaults
+      state: present
+
   - name: Installing packages
     apt:
       pkg:

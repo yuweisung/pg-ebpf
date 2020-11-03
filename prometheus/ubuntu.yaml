@@ -11,3 +11,17 @@
     apt:
       update_cache: yes
       upgrade: yes
+
+ - name: Creating filesystems
+    filesystem:
+      fstype: xfs
+      dev: {{ item }}
+    with_item:
+      - /dev/sdb
+
+- name: Mounting pgsrc filesystem
+    mount:
+      path: /promdata
+      src: /dev/sdb
+      opts: nofail,noatime,nodev,defaults
+      state: mounted

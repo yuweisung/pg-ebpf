@@ -26,6 +26,11 @@ resource "google_compute_disk" "pg_data" {
 	type = "pd-ssd"
 }
 
+resource "google_compute_disk" "prom_data" {
+	name = "promdata"
+	type = "pd-ssd"
+}
+
 resource "google_compute_instance" "prometheus" {
 	name = "prometheus"
 	machine_type = var.instance_type
@@ -34,6 +39,10 @@ resource "google_compute_instance" "prometheus" {
 		initialize_params {
 			image = var.image_type
 		}
+	}
+
+	attached_disk {
+		source = google_compute_disk.prom_data.name
 	}
 
 	metadata = {
@@ -64,6 +73,7 @@ resource "google_compute_instance" "postgres" {
 	attached_disk {
 		source = google_compute_disk.pg_source.name
 	}
+
 	attached_disk {
 		source = google_compute_disk.pg_data.name
 	}
@@ -71,8 +81,6 @@ resource "google_compute_instance" "postgres" {
 	metadata = {
 		ssh-keys = "${var.ssh_user}:${file(var.ssh_pub)}"
 	}
-
-	metadata_startup_script = file("scripts/pd_disk_mount.sh")
 
 	network_interface {
 		network = "default"
@@ -95,7 +103,7 @@ resource "local_file" "ansible_host" {
  filename = "${path.module}/hosts"
 }
 
-resource "null_resource" "ansible_playbook" {
+resource "null_resource" "ansible_playbook_postgres" {
   depends_on = [
 	local_file.ansible_host,
   ]
@@ -104,7 +112,11 @@ resource "null_resource" "ansible_playbook" {
   }
 }
 
-
-output "ip" {
-	value = google_compute_instance.prometheus.network_interface.0.access_config.0.nat_ip
+resource "null_resource" "ansible_playbook_prometheus" {
+  depends_on = [
+	local_file.ansible_host,
+  ]
+  provisioner "local-exec" {
+    command = "ansible-playbook prometheus/main.yaml"
+  }
 }
