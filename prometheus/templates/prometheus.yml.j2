@@ -1,0 +1,17 @@
+global:
+  scrape_interval:     15s 
+  evaluation_interval: 15s 
+
+  external_labels:
+      monitor: 'codelab-monitor'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'nodes'
+    static_configs:
+{% for hostname, ip in client_information_dict.iteritems() %}
+      - targets: ['{{ ip }}']
+        labels: {'host': '{{ hostname }}' }
+{% endfor %}

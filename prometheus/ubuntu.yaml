@@ -1,5 +1,7 @@
 ---
 - hosts: prometheus
+  vars:
+    prometheus_version: 2.22.0
   gather_facts: no
   become: yes
   tasks:
@@ -49,26 +51,65 @@
       group: prometheus
       system: yes
 
-  - name: Setting up etc prometheus
+  - name: Setting up prometheus directories
     file:
       path: "{{ item }}"
       state: directory
+      owner: prometheus
+      group: prometheus
+      recurse: yes
     with_items:
       - /etc/prometheus/rules
       - /etc/prometheus/rules.d
       - /etc/prometheus/files_sd
+      - /var/lib/prometheus
 
-  - name: setting up prometheus systemd
+  - name: Downloading prometheus
+    unarchive:
+      src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+      dest: /tmp
+      remote_src: yes
+
+  - name: Copying binaries
+    copy:
+      src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+      dest: "/usr/local/bin/"
+      owner: prometheus
+      group: prometheus
+      mode: 755
+      remote_src: yes
+    with_items:
+      - promtool
+      - prometheus
+
+  - name: Copying configs
+    copy:
+      src: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}"
+      dest: /etc/prometheus/
+      owner: prometheus
+      group: prometheus
+      remote_src: yes
+    with_items:
+      - console_libraries
+      - consoles
+      - prometheus.yml
+
+  - name: Deleting tmp folder
+    file:
+      path: '/tmp/prometheus-{{ prometheus_version }}.linux-amd64'
+      state: absent
+
+  - name: Setting up prometheus systemd
     copy:
       src: files/prometheus.service
       dest: /etc/systemd/system
       owner: root
       group: root
   
-  - name: refreshing systemd
+  - name: Refreshing systemd
     systemd: daemon_reload=yes
 
-  - name: enabling and starting prometheus service
+  - name: Enabling and starting prometheus service
     systemd:
       name: prometheus.service
       state: started
