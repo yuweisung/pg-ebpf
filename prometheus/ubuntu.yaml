@@ -76,7 +76,7 @@
       dest: "/usr/local/bin/"
       owner: prometheus
       group: prometheus
-      mode: 755
+      mode: 0750
       remote_src: yes
     with_items:
       - promtool

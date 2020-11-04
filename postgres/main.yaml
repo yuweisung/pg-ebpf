@@ -5,3 +5,4 @@
   import_playbook: "pg_src.yaml"
 - name: Initing postgresql
   import_playbook: "pg_init.yaml"
+

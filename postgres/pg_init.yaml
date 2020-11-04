@@ -38,9 +38,6 @@
       dest: /etc/systemd/system
       owner: root
       group: root
-  
-  - name: refreshing systemd
-    systemd: daemon_reload=yes
 
   - name: initing pgsql
     become: yes
@@ -49,6 +46,7 @@
   - name: enabling and starting postgresql service
     systemd:
       name: postgresql.service
+      daemon_reload: true
       state: started
       enabled: yes
 

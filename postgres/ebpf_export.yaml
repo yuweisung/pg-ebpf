@@ -1,0 +1,52 @@
+---
+- hosts: postgres
+  gather_facts: no
+  become: yes
+  vars:
+    ebpf_exporter_version: 1.2.2
+  tasks:
+  - name: Downloading ebpf-exporter
+    unarchive:
+      src: "https://github.com/cloudflare/ebpf_exporter/releases/download/v{{ ebpf_exporter_version }}/ebpf_exporter-{{ ebpf_exporter_version }}.tar.gz"
+      dest: /tmp
+      remote_src: yes
+
+  - name: Copying ebpf_exporter binary
+    copy:
+      src: "/tmp/ebpf_exporter-{{ ebpf_exporter_version }}/ebpf_exporter"
+      dest: "/usr/local/bin/ebpf_exporter"
+      mode: 0750
+      owner: root
+      group: root
+      remote_src: yes
+
+  - name: Creating texfile dir
+    file:
+      path: /etc/ebpf_exporter
+      state: directory
+      owner: root
+      group: root
+      mode: 0750
+
+  - name: Creaing config file
+    copy:
+      src: "files/config.yaml"
+      dest: "/etc/ebpf_exporter/config.yaml"
+      owner: root
+      group: root
+      mode: 0640
+
+  - name: Copying ebpf_exporter systemd
+    template:
+      src: files/ebpf_exporter.service
+      dest: /etc/systemd/system/ebpf_exporter.service
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Enabling node exporter
+    systemd:
+      daemon_reload: true
+      name: ebpf_exporter.service
+      enabled: true
+      state: started

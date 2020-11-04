@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+programs:
+{{ ebpf_exporter_programs | to_nice_yaml }}
